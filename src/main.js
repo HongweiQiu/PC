@@ -9,7 +9,7 @@ import axios from 'axios'
 import {Toast, Swipe, Indicator, Spinner, MessageBox, Switch, Actionsheet} from 'mint-ui'
 import 'mint-ui/lib/style.css'
 import ElementUI from 'element-ui';
-
+import messagetest from './test/message.js'
 import 'element-ui/lib/theme-chalk/index.css';
 // axios接口
 import {post, get, patch, put} from '../config/api'
@@ -38,6 +38,7 @@ Vue.component(Switch.name, Switch)
 Vue.prototype.$Indicator = Indicator
 Vue.prototype.$MessageBox = MessageBox
 Vue.use(ElementUI);
+Vue.use(messagetest);
 Vue.component(Actionsheet.name, Actionsheet)
 // Vue.component(DatetimePicker.name, DatetimePicker)
 Vue.component(Swipe.name, Swipe)

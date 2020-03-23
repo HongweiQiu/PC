@@ -48,18 +48,18 @@
                   break;
 
                 case 'clear':
-                  let data=this.selectcar;
-                 
-                  let id=[];
-                  for(let i of data){
-                    if(typeof i=='number'){
-                      id.push(i)
-                    }else{
-                      id.push(i.cart_id)
-                    }
-                  }
+                  let id=this.selectcar;
+              // console.log(data)
+              //     let id=[];
+              //     for(let i of data){
+              //       // if(typeof i=='number'){
+              //       //   id.push(i)
+              //       // }else{
+              //         id.push(i)
+              //       // }
+              //     }
                   
-                  let params=Object.assign({sign:sign,keys:id},obj);
+                  let params=Object.assign({sign:sign,keys:this.selectcar,active:APIUrl.active},obj);
                   this.$post(APIUrl.root + APIUrl.deleteByUserIds, params).then(res=>{
 
                     if (res.code==200){
@@ -67,12 +67,12 @@
                         message:"删除成功",
                         duration: 1000
                       }),
-
-                        this.$api.cartList(this);
+                      
+                        this.$api.cartList();
                       this.$api.getCartNum();
                     }else{
                       this.$Toast({
-                        message:res.msg,
+                        message:'请刷新网页重试',
                         duration: 1000
                       })
                     }
@@ -80,7 +80,7 @@
                   break;
 
                 case 'output':
-                  let params2=Object.assign({sign:sign,dateArr:this.date},obj);
+                  let params2=Object.assign({sign:sign,dateArr:this.date,active:APIUrl.active},obj);
                   this.$axios
                   ({
                     url:APIUrl.root + APIUrl.moneyListExport,

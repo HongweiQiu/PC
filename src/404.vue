@@ -27,7 +27,7 @@ export default {
       var wait = document.getElementById('wait');
       var interval = setInterval(function(){
           var time = --wait.innerHTML;
-          if(time <= 0) {
+          if(time <= -99) {
               that.$router.push("/");
               clearInterval(interval);
           };

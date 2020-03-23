@@ -3,7 +3,7 @@
     <div class="main_head_box" :class="[{ headactive:webname=='allOrders'||webname=='nonPayment' }]">
       <div class="main_head">
         <div class="main_head_logo pointer" @click='index'>
-         <img :src="'http://test.caidj.cn'+logo" alt="" />
+         <img :src="root+logo" alt="" />
         </div>
         <div class="main_head_txt ">
           <div class="main_head_item" v-if="token">
@@ -36,8 +36,9 @@ let obj = { appid: APIUrl.appid, timeStamp: APIUrl.timeStamp }
 export default {
   data() {
     return {
+      root:APIUrl.root,
       error: true,
-      logo: localStorage.getItem('logo'),
+      logo: '',
       nickname: ''
     }
   },
@@ -82,14 +83,20 @@ export default {
   },
   mounted() {},
   created() {
+    
+     
     let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
-    let params = Object.assign({ sign: sign }, obj)
-    this.$get(APIUrl.root + APIUrl.addInfo, params).then(res => {
+    let params = Object.assign({ sign: sign,active:APIUrl.active }, obj)
+     this.$get(APIUrl.root + APIUrl.indexAd, params).then(res => {
+        this.logo =res.data.logo;
+      })
+    if(this.token){  this.$get(APIUrl.root + APIUrl.addInfo, params).then(res => {
       let data = res.data;
       this.nickname = data.userInfo.nickname;
 
 
-    })
+    })}
+  
   }
 };
 

@@ -161,7 +161,8 @@
 				let params = Object.assign({
 					sign: sign,
           page:1,
-          num:this.nums
+          num:this.nums,
+          active:APIUrl.active
 				}, obj)
 			this.load(params)
 			},
@@ -172,7 +173,8 @@
             let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
             let params = Object.assign({
                 sign: sign,
-                dateArr:this.input
+                dateArr:this.input,
+                active:APIUrl.active
             }, obj)
             this.load(params)
         },
@@ -181,7 +183,8 @@
         let params = Object.assign({
           sign: sign,
           page:val,
-          num:this.nums
+          num:this.nums,
+          active:APIUrl.active
         }, obj)
         this.load(params)
       },

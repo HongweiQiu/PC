@@ -60,7 +60,7 @@
             childInfo(){
               
                 let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
-                let params=Object.assign({sign:sign, select_zid:this.zid},obj)
+                let params=Object.assign({sign:sign, select_zid:this.zid,active:APIUrl.active},obj)
                 this.$get(APIUrl.root+APIUrl.memberAddressInfo,params).then(res=>{
                     let data=res.data;
                     if(res.code==200){
@@ -87,7 +87,7 @@
                     newobj1=newobj;
                 }
                 let sign = this.$md5(objKeySort(newobj1) + APIUrl.appsecret);
-                let params=Object.assign({sign:sign},newobj1)
+                let params=Object.assign({sign:sign,active:APIUrl.active},newobj1)
                 this.$post(APIUrl.root+APIUrl.editChild,params).then(res=>{
                     if(res.code==200){
                         this.$message({

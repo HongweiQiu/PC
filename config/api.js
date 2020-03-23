@@ -3,6 +3,7 @@ import APIUrl from '../config/apiurl';
 import store from '../config/store'
 import * as types from '../config/types'
 import router from '../config/routes'
+import {Toast, Swipe, Indicator, Spinner, MessageBox, Switch, Actionsheet} from 'mint-ui'
 
 
 // 配置API接口地址
@@ -27,10 +28,18 @@ axios.interceptors.request.use(
   err => {
     return Promise.reject(err)
   })
+// 接口错误拦截
 
 // http response 拦截器  返回
 axios.interceptors.response.use(
   response => {
+   if(response.data.code==401){
+    // Toast({message:'尊敬的用户,你尚未登录,请登录'});
+     store.commit('jumppage',true)
+    // router.push({path:'login'})
+   
+   }
+
     if(typeof(response.headers.authorization) != "undefined")
     {
       var data = new Object();
@@ -44,6 +53,7 @@ axios.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
+
           // 401 清除token信息并跳转到登录页面
           store.commit(types.LOGOUT)
 

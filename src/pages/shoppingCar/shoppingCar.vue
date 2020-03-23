@@ -169,17 +169,23 @@
       </div>
       <div class="car_from">
         <el-dialog title="备注" :visible.sync="dialogVisible" width="30%" :before-close="handleClose">
-          <el-input type="textarea" placeholder="请输入内容" v-model="remark2" maxlength="30" 
-          @keydown.native="remarkInfo($event)" show-word-limit></el-input>
+          <el-input type="textarea" placeholder="请输入内容" v-model="remark2" maxlength="30" @keydown.native="remarkInfo($event)" show-word-limit></el-input>
           <span slot="footer" class="dialog-footer">
             <el-button @click="dialogVisible = false" size="mini">取 消</el-button>
             <el-button @click="confirmRemark" size="mini" type='success'>确 定</el-button>
           </span>
         </el-dialog>
-        <el-table ref="multipleTable" :data="myCart" @cell-click="oneclick" :row-key="getRowKeys" tooltip-effect="dark" selectable='checked' @selection-change="changeFun">
-          <el-table-column :reserve-selection="true" type="selection" width="50"></el-table-column>
+        <el-table ref="multipleTable" :data="myCart" @cell-click="oneclick" tooltip-effect="dark" @selection-change="changeFun">
+          <el-table-column type="selection" width="50"></el-table-column>
           <el-table-column label="商品图片" width="150">
-            <template slot-scope="scope"><img class='imgwidth' :src="'http://test.caidj.cn'+scope.row.img"></template>
+            <template slot-scope="scope">
+              <!-- <img class='imgwidth' :src="root+scope.row.img"> -->
+               <el-image :src="scope.row.img" fit="contain" class='imgwidth'>
+           <div slot="error" class="image-slot">
+          <img :src="defaultImg">
+      </div>
+    </el-image>
+            </template>
           </el-table-column>
           <el-table-column label="商品名称" width="120" prop="title">
           </el-table-column>
@@ -308,6 +314,8 @@ export default {
   },
   data() {
     return {
+      defaultImg:'',
+      root: APIUrl.root,
       status1: false,
       status2: false,
       totalPrice: 0,
@@ -335,20 +343,33 @@ export default {
       startime: '',
       endtime: '',
       statu: this.$route.query.statu,
-      // myCart: [],
+      cartlist: [],
+      // bitmap:true,
+      // myCart:[]
     }
   },
   watch: {
 
     myCart() {
+
       if (this.statu != 0) {
         this.$nextTick(() => {
           let rows = this.myCart;
-          console.log(rows)
           this.checked(rows, true)
         })
+      } else {
+        this.$nextTick(() => {
+          let row = JSON.parse(localStorage.getItem("localKey"));
+            for (let i = 0; i < this.myCart.length; i++) {
+               for(let j of row){
+             if(this.myCart[i].id==j.id){  
+               this.$refs.multipleTable.toggleRowSelection(this.myCart[i], true);
+            }
+               }
+            }
+        })
       }
-    },
+    }
   },
 
   computed: {
@@ -358,7 +379,7 @@ export default {
       'bitmap',
       'countInfo',
       'is_look',
-       'price'
+      'price'
     ])
   },
   components: {
@@ -366,33 +387,27 @@ export default {
   },
 
   methods: {
-    ...mapMutations(['firstNav','checkCart']),
+    ...mapMutations(['firstNav', 'checkCart', 'selectCar']),
+    remarkInfo(event) {
 
-  
-    getRowKeys(row) {
-
-      return row.id
-    },
-    remarkInfo(event){
-      console.log(event)
-      if(event.keyCode==13){
+      if (event.keyCode == 13) {
         this.confirmRemark()
-           event.preventDefault() // 阻止浏览器默认换行操作
+        event.preventDefault() // 阻止浏览器默认换行操作
         return false
       }
-         
-     
+
+
     },
     oneclick(rows, column, cell, event) {
-      if(column.label=='购买数量'){
-        console.log(1)
-         let test = []
-      test.push(rows);
+      if (column.label == '购买数量') {
 
-      this.checked(test, false)
-      this.checked(test, true)
+        let test = []
+        test.push(rows);
+
+        this.checked(test, false)
+        this.checked(test, true)
       }
-     
+
     },
     addRemark(item) {
       let rows = this.$store.state.carts;
@@ -412,32 +427,31 @@ export default {
       }
 
       let newsign = this.$md5(objKeySort(newobj) + APIUrl.appsecret);
-      let params = Object.assign({ sign: newsign }, newobj);
+      let params = Object.assign({ sign: newsign, active: APIUrl.active }, newobj);
       this.$post(APIUrl.root + APIUrl.itemRemark, params).then(res => {
         if (res.code == 200) {
           this.$Toast({
             message: '修改备注成功'
           })
           this.dialogVisible = false;
-          this.carlist()
+      this.$api.cartList();
         }
       })
     },
-
-    //复选框改变的值
-    changeFun(val) {
+    //勾选商品合计价钱
+    total(price) {
       this.cartId = []
-      let totalPrice = []
-      this.selectCart = val;
 
-      for (let i of val) {
+      let totalPrice = []
+      for (let i of price) {
 
         if (i.attr.length == 0) {
           totalPrice.push(i.cart_num * i.price)
         } else {
           totalPrice.push(i.cart_num * i.attr.attr_price)
         }
-        this.cartId.push(i.cart_id)
+        this.cartId.push(i.cart_id);
+
       }
       let sum = 0;
 
@@ -445,15 +459,24 @@ export default {
 
         sum += i;
       }
-     this.checkCart('')
-        this.totalPrice =sum;
-     
+      this.totalPrice = sum;
 
+    },
+    //复选框改变的值
+    changeFun(val) {
+      this.selectCart = val;
+      this.total(val);
+
+    },
+    //自增加入购物车
+    handleChange(item, value) {
+      this.$api.addCart(item, value);
+      this.total(this.selectCart)
     },
     selectClick(event) {
       this.select_zid = event.zid;
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: sign }, obj)
+      let params = Object.assign({ sign: sign, active: APIUrl.active }, obj)
       this.$get(APIUrl.root + APIUrl.addInfo, params).then(res => {
         let data = res.data;
 
@@ -486,16 +509,10 @@ export default {
         this.$router.push({ path: 'infomation' })
       }
 
-
-    },
-    //购物车列表
-    carlist() {
-
-      this.$api.cartList(this)
-
     },
 
     deletebuy() {
+
       if (!this.selectCart.length) {
         this.$Toast({
           message: '请选择要删除的商品'
@@ -504,8 +521,9 @@ export default {
 
       }
 
-      this.$store.commit('selectCar', this.cartId)
-      this.$store.commit('changedisplay', 'clear')
+
+      this.$store.commit('changedisplay', 'clear');
+      this.selectCar(this.cartId);
     },
     //检查订单能否直接下单
     checkOrder() {
@@ -519,10 +537,18 @@ export default {
       }
       let newobj = Object.assign({ send_time: this.sendTime }, obj)
       let newsign = this.$md5(objKeySort(newobj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: newsign }, newobj)
+      let params = Object.assign({ sign: newsign, active: APIUrl.active }, newobj)
 
       if (this.select_zid) {
-        this.order();
+        this.$MessageBox.confirm('', {
+          message: '信用金即将用完，请及时结账（可以直接下单）？',
+          title: '提示',
+        }).then(action => {
+          if (action == 'confirm') { //确认的回调
+            this.order();
+          }
+        });
+
         return
 
       }
@@ -622,7 +648,8 @@ export default {
         sign: newsign,
         remark: this.remark,
         cartIds: this.cartId,
-        select_zid: this.select_zid
+        select_zid: this.select_zid,
+        active: APIUrl.active
       }, newobj)
       this.$post(APIUrl.root + APIUrl.pcAddOrder, params).then(res => {
         if (res.code == 200) {
@@ -630,6 +657,7 @@ export default {
             message: '下单成功',
             duration: 1000
           })
+
           this.$api.getCartNum()
           this.firstNav('order');
           this.$router.push({ path: 'allOrders' })
@@ -640,7 +668,7 @@ export default {
           })
         } else {
           this.$Toast({
-            message: res.msg,
+            message: '请刷新网页重试',
             duration: 1000
           })
         }
@@ -650,11 +678,11 @@ export default {
     mergeOrder() {
       let newobj = Object.assign({ send_time: this.sendTime }, obj)
       let newsign = this.$md5(objKeySort(newobj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: newsign, cartIds: this.cartId, select_zid: this.select_zid }, newobj)
+      let params = Object.assign({ sign: newsign, cartIds: this.cartId, select_zid: this.select_zid, active: APIUrl.active }, newobj)
       this.$post(APIUrl.root + APIUrl.pcMergeOrder, params).then(res => {
         if (res.code != 200) {
           this.$Toast({
-            message: res.msg,
+            message: '请刷新网页重试',
             duration: 1000
           })
         } else {
@@ -662,54 +690,31 @@ export default {
             message: '合拼订单成功',
             duration: 1000
           })
+          this.$api.getCartNum();
           this.firstNav('order');
           this.$router.push({ name: 'allOrders' })
         }
       })
     },
 
-    //自增加入购物车
-    handleChange(item, value) {
-    
-      if (item.is_float == 1) {
-        if (!Number.isInteger(value)) {
-          this.$Toast({
-            message: '购买数量不能为小数',
-            duration: 1000
-          })
-          return;
-        }
-      }
-      this.$api.addCart(item, value);
 
-      let totalPrice = []
-
-      // this.checked(this.selectCart[0],true)
-      for (let i of this.selectCart) {
-        totalPrice.push(i.cart_num * i.price)
-      }
-      let sum = 0
-      for (let i of totalPrice) {
-        sum += i
-      }
-
-      this.totalPrice = sum;
-
-
-
-    },
     checked(rows, statu) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row, statu)
-        })
-      }
+      this.$nextTick(() => {
+        if (rows) {
+          rows.forEach(row => {
+            this.$refs.multipleTable.toggleRowSelection(row, statu)
+          })
+        }
+      })
     },
     //全选
     all(rows) {
       this.status1 = true;
       this.status2 = false;
       this.checked(rows, true)
+
+
+
     },
     //取消全选
     cancel(rows) {
@@ -717,12 +722,11 @@ export default {
       this.status2 = true;
       this.checked(rows, false);
 
-
     },
     //选择账号
     selectCount() {
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: sign }, obj)
+      let params = Object.assign({ sign: sign, active: APIUrl.active }, obj)
       this.$get(APIUrl.root + APIUrl.addInfo, params).then(res => {
         let data = res.data;
         this.startime = data.open_time;
@@ -734,19 +738,9 @@ export default {
         this.fare = data.fare;
       })
     },
-
+    
   },
   mounted() {
-
-    if (this.statu == 0) {
-      // let row=this.myCart;
-      // console.log(this.myCart)
-      // this.checked(this.myCart,false)
-      let row = JSON.parse(localStorage.getItem("localKey"));
-
-      this.checked(row, true)
-    }
-
 
     this.heightImg = document.getElementById('leftnav2').offsetHeight;
     const that = this
@@ -756,7 +750,12 @@ export default {
 
   },
   created() {
+    //账号信息
     this.selectCount();
+    //购物车列表
+   
+    this.$api.cartList();
+this.defaultImg=localStorage.getItem('defaultImg');
     if (localStorage.getItem('token')) { // 判断是否登录
       var result = JSON.parse(localStorage.getItem('token'))
       var data = new Object()
@@ -779,10 +778,7 @@ export default {
 
     this.sendTime = year + '-' + month + '-' + day
 
-    this.carlist();
-   if(this.selectCart){
-    console.log(this.selectCart)
-   }
+
 
   }
 }
@@ -868,7 +864,7 @@ export default {
 }
 
 .green1 {
-   color: green !important;
+  color: green !important;
 }
 
 .car_from .el-table .cell .el-button--text {

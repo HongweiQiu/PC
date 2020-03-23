@@ -33,7 +33,7 @@
             <i class="fa fa-angle-up"></i>
           </div>
         </div>
-        <div class="classify_list" v-if="classify1 != ''" style="margin-bottom:10px;">
+        <div class="classify_list second" :class="{secondShow:seconds}" v-if="classify1 != ''" style="margin-bottom:10px;">
           <div class="list_title">
             二级分类：
           </div>
@@ -61,7 +61,12 @@
           <div v-for="item in list">
             <div class="form_content_list" v-if="item.attr.length==0">
               <div class="list_item">
-                <img :src="'http://test.caidj.cn'+item.img" alt="">
+                <!-- <img :src="root+item.img" alt=""> -->
+                 <el-image :src="item.img" fit="contain">
+      <div slot="error" class="image-slot">
+          <img :src="defaultImg">
+      </div>
+    </el-image>
               </div>
               <div class="list_item">
                 {{item.title}}
@@ -83,7 +88,11 @@
             <div v-else>
               <div class="form_content_list" :class="{'bgcolor':item.choose}">
                 <div class="list_item">
-                  <img :src="'http://test.caidj.cn'+item.img" alt="">
+                 <el-image :src="item.img" fit="contain">
+      <div slot="error" class="image-slot">
+          <img :src="defaultImg">
+      </div>
+    </el-image>
                 </div>
                 <div class="list_item">
                   {{item.title}}
@@ -151,6 +160,9 @@ export default {
   },
   data() {
     return {
+      defaultImg:'',
+      root :APIUrl.root,
+      seconds:false,
       level: false,
       sorttitle: [
         { title: '商品图片' }, { title: '商品名称' }, { title: '商品规格' }, { title: '单价(￥)' }, { title: '单位' }, { title: '购买数量' }
@@ -214,7 +226,7 @@ export default {
     //查找商品
     search() {
       let id = this.cateId;
-      let params = Object.assign({ sign: this.sign, cateId: id, num: this.num, title: this.input }, obj)
+      let params = Object.assign({ sign: this.sign, cateId: id, num: this.num, title: this.input,active:APIUrl.active }, obj)
       this.load(APIUrl.itemListByCate, params)
     },
     moreOneItem(data) {
@@ -226,32 +238,29 @@ export default {
       this.firstArr = data.self_next
 
 
-      if (this.moreOne == true) {
-        this.moreOne = false
-        this.classify_one = this.cateInfo.slice(0, 10)
-      }
-      let params = Object.assign({ sign: this.sign, cateId: this.cateId, num: this.num, title: this.input }, obj)
+      // if (this.moreOne == true) {
+      //   this.moreOne = false
+      //   this.classify_one = this.cateInfo.slice(0, 10)
+      // }
+      let params = Object.assign({ sign: this.sign, cateId: this.cateId, num: this.num, title: this.input,active:APIUrl.active }, obj)
       this.load(APIUrl.itemListByCate, params)
     },
     moreTwoItem(data) {
 
       this.classify2 = data.name
       this.cateId = data.id;
-      let params = Object.assign({ sign: this.sign, cateId: this.cateId, num: this.num, title: this.input }, obj)
+      let params = Object.assign({ sign: this.sign, cateId: this.cateId, num: this.num, title: this.input,active:APIUrl.active }, obj)
       this.load(APIUrl.itemListByCate, params)
-      if (this.moreTwo == true) {
-        this.moreTwo = false
-        this.classify_two = this.firstArr.slice(0, 10)
-      }
+    
 
     },
     moreOneClick(data) {
-      if (this.classify_one.length <= 5) {
-        this.$Toast({
-          message: '暂时没有更多分类'
-        })
-        return
-      }
+      // if (this.classify_one.length <= 5) {
+      //   this.$Toast({
+      //     message: '暂时没有更多分类'
+      //   })
+      //   return
+      // }
       this.moreOne = data
       if (data == true) {
         this.classify_one = this.cateInfo.list;
@@ -266,12 +275,8 @@ export default {
         })
         return
       }
-      this.moreTwo = data
-      if (data == true) {
-        this.classify_two = this.firstArr
-      } else {
-        this.classify_two = this.firstArr.slice(0, 5)
-      }
+      this.seconds=!this.seconds;
+     
     },
     handleCurrentChange(val) {
 
@@ -280,6 +285,7 @@ export default {
         page: val,
         num: this.num,
         cateId: this.CateId,
+        active:APIUrl.active
       }, obj)
 
       this.load(APIUrl.itemListByCate, params)
@@ -318,9 +324,9 @@ export default {
         newobj = Object.assign({ item_id: item.id, attr_id: 0, item_num: value }, obj)
       }
       let newsign = this.$md5(objKeySort(newobj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: newsign }, newobj)
+      let params = Object.assign({ sign: newsign,active:APIUrl.active }, newobj)
       if (value != 0) {
-        this.$post(APIUrl.root + APIUrl.firstChangeNum, params).then(res => {
+        this.$post(APIUrl.root + APIUrl.changeNum, params).then(res => {
           if (res.code != 200) {
             this.$Toast({
               message: res.msg,
@@ -331,9 +337,7 @@ export default {
               message: '加入购物车成功',
               duration: 1000
             })
-            this.$post(APIUrl.root + APIUrl.changeNum, params).then(res => {
-              this.$store.commit('changeNum', res.data.countNum)
-            })
+            this.$store.commit('changeNum', res.data.countNum)
           }
         })
       } else {
@@ -360,13 +364,16 @@ export default {
     load(url, params) {
       this.$Indicator.open('正在加载中.....')
       this.$get(APIUrl.root + url, params).then(res => {
+         
        if(res.code==401){
           this.$Indicator.close()
             this.bitmap = false;
-            this.$store.commit('jumppage',true)
+       //      this.$store.commit('jumppage',true)
             return;
        }
+
         let data = res.data;
+        this.defaultImg=data.item_default;
         this.is_look = data.is_look;
         if (data.list.length) {
           this.list = data.list;
@@ -388,13 +395,13 @@ export default {
     },
     loadClassifyInfo() {
       this.$Indicator.open('正在加载中')
-      let params = Object.assign({ sign: this.sign, cateId: this.cateId, num: this.num, page: 1 }, obj);
+      let params = Object.assign({ sign: this.sign, cateId: this.cateId, num: this.num, page: 1,active:APIUrl.active }, obj);
 
       this.load(APIUrl.itemListByCate, params)
 
     },
     loadClassify() {
-      let params = Object.assign({ sign: this.sign }, obj)
+      let params = Object.assign({ sign: this.sign,active:APIUrl.active }, obj)
       this.$get(APIUrl.root + APIUrl.cateList, params).then(res => {
         let data = res.data
         // this.classify_one=data.list;
@@ -422,12 +429,12 @@ export default {
    
     if (this.cateId) {
       this.classify1 = localStorage.getItem('catetitle')
-      let params = Object.assign({ sign: this.sign }, obj)
+      let params = Object.assign({ sign: this.sign,active:APIUrl.active }, obj)
       this.$get(APIUrl.root + APIUrl.cateList, params).then(res => {
         let data = res.data;
         for (let i = 0; i < data.list.length; i++) {
           if (data.list[i].id == this.cateId) {
-            this.classify_two = data.list[i].self_next
+            this.classify_two = data.list[i].self_next;
           }
         }
 
@@ -446,7 +453,7 @@ export default {
     //   that.classify_one = this.cateInfo.list.slice(0, 5)
     // }
     // if (that.moreTwo == false) {
-    //   // that.classify_two =  this.firstArr.slice(0, 5)
+    //   that.classify_two =  this.firstArr.slice(0, 5)
     //   that.classify_two =  false;
     // }
   },
@@ -517,4 +524,6 @@ export default {
   background: #F2F6FC;
 }
 
+.classify_box .classify_list_box .second .list_box .list_item:nth-child(n+6){display:none;}
+.classify_box .classify_list_box .secondShow .list_box .list_item:nth-child(n+6){display:block;}
 </style>

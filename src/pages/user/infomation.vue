@@ -49,6 +49,7 @@ export default {
       fd.append('timeStamp', APIUrl.timeStamp);
       fd.append('type', 'avatars ');
       fd.append('img', file.file);
+      fd.append('active',APIUrl.active);
 
       this.$post(APIUrl.root + APIUrl.uploadImg, fd).then(res => {
         this.$Indicator.close();
@@ -99,6 +100,8 @@ export default {
       fd.append('phone', this.userinfo.phone);
       fd.append('address', this.userinfo.address);
       fd.append('contact', this.userinfo.contact);
+      fd.append('active', APIUrl.active);
+
       this.$post(APIUrl.root + APIUrl.saveMemberInfo, fd).then(res => {
         this.$Indicator.close();
         if (res.code == 200) {
@@ -126,15 +129,16 @@ export default {
       this.$get(APIUrl.root + APIUrl.memberInfo, {
         appid: APIUrl.appid,
         timeStamp: APIUrl.timeStamp,
-        sign: sign
+        sign: sign,
+        active:APIUrl.active
       }).then(res => {
         this.$Indicator.close();
         if (res.code == 200) {
           this.userinfo = res.data.info
           if (this.userinfo.logo == '') {
-            this.imageUrl = APIUrl.root + res.data.member_default;
+            this.imageUrl = res.data.member_default;
           } else {
-            this.imageUrl = APIUrl.root + this.userinfo.logo;
+            this.imageUrl =this.userinfo.logo;
           }
 
         }

@@ -36,7 +36,7 @@ export default{
   },
 //首页
   index(){
-    let params = Object.assign({sign: sign}, obj)
+    let params = Object.assign({sign: sign}, obj,{active:APIUrl.active})
     get(APIUrl.root + APIUrl.indexAd, params).then(res=>{
 
       store.commit('index',res.data)
@@ -46,12 +46,12 @@ export default{
   cartList(){
     Indicator.open('加载中...');
 
-    let params = Object.assign({sign: sign}, obj)
+    let params = Object.assign({sign: sign,active:APIUrl.active}, obj)
     get(APIUrl.root + APIUrl.openCart, params).then(res => {
         let data = res.data;
            // that.is_look=data.is_look;
       store.commit('islook',data.is_look) 
-
+           localStorage.setItem('defaultImg',res.data.item_default)
         if (!data.shop.length) {
           store.commit('bitMap',false)
         } else {
@@ -61,7 +61,7 @@ export default{
                 for (let j of i.list) {
                cartlist.push(j);
                 }
-               store.commit('getCarts',cartlist) 
+                store.commit('getCarts',cartlist) 
               
             }
         }
@@ -95,7 +95,9 @@ export default{
       newobj = Object.assign({item_id: item.id, attr_id: 0, item_num: value}, obj);
     }
     let newsign = md5(objKeySort(newobj) + APIUrl.appsecret);
-    let params = Object.assign({sign: newsign}, newobj);
+
+    let params = Object.assign({sign: newsign,active:APIUrl.active}, newobj);
+
 
             if(value==0){
              post(APIUrl.root + APIUrl.deleteCart, params).then(res => {
@@ -107,11 +109,13 @@ export default{
               }
          store.commit('changeNum', res.data.countNum)
              })
-              this.cartList();
+      
+         this.cartList();
+             
              return
             }
 
-    post(APIUrl.root + APIUrl.firstChangeNum, params).then(res => {
+    post(APIUrl.root + APIUrl.changeNum, params).then(res => {
 
       if (res.code != 200) {
         Toast({
@@ -123,14 +127,14 @@ export default{
           message: '加入购物车成功',
           duration: 1000
         });
-        this.cartNum(params)
+         store.commit('changeNum', res.data.countNum)
       }
     })
   },
 
   // 选择子账户
   selectCount(that){
-    let params = Object.assign({sign: sign}, obj)
+    let params = Object.assign({sign: sign,active:APIUrl.active}, obj)
     get(APIUrl.root + APIUrl.childInfo,params ).then(res => {
       if(res.code == 200) {
         that.options = res.data;
@@ -141,7 +145,7 @@ export default{
   //收货人信息
   consignee(that){
 
-    let params = Object.assign({sign: sign}, obj)
+    let params = Object.assign({sign: sign,active:APIUrl.active}, obj)
     get(APIUrl.root + APIUrl.memberInfo, params).then(res => {
       let data = res.data;
       store.commit('consignee',data);
@@ -150,10 +154,11 @@ export default{
 
   //购物车总价和数量
   getCartNum(){
-
-    let params=Object.assign({sign:sign},obj);
+              if(store.state.token){ 
+                let params=Object.assign({sign:sign,active:APIUrl.active},obj);
     get(APIUrl.root+APIUrl.getCountNum,params).then(res=>{
       store.commit('changeNum',res.data.countNum);
-    })
+    })}
+   
   }
 }

@@ -1,19 +1,18 @@
 <style scoped>
   .el-button {
-		padding: 10px 50px !important;
-	}
-	.pc_login_box .logo p{color:#9F0505;font-size:35px;top:13.5%;left:19.8%;}
-	.pc_login_box .logo img{top: 13.5%;
-    left: 18.3%;
-    width: 6%;}
+    padding: 10px 50px !important;
+  }
+  .pc_login_box .logo p{color:#9F0505;font-size:35px;top:13.5%;left:19.8%;}
+  .pc_login_box .logo img{
+    /* top: 13.5%; */
+    /* left: 18.3%; */
+    width: 59%;}
 </style>
 <template>
   <article>
     <div class="pc_login_box">
       <div class="logo">
-      	  <img  v-if="logo" class='fixed' :src="'http://test.caidj.cn'+logo" alt="" />
-        <p  v-else='logo' class='fixed'>70%</p>
-      
+        <img class='' :src="root+img" alt="" />
       </div>
       <div class="pc_login">
         <div class="inp_box">
@@ -35,7 +34,9 @@
           <el-button type="success" @click='login'>登录</el-button>
           <div class="btn">
             <!-- <router-link :to="{name:'forget'}">忘记密码？</router-link> -->
-            <router-link :to="{name:'index'}"><el-button type="warning">首页</el-button></router-link>
+            <router-link :to="{name:'index'}">
+              <el-button type="warning">首页</el-button>
+            </router-link>
           </div>
         </div>
       </div>
@@ -45,21 +46,24 @@
 <script>
 import * as types from '../../../config/types'
 import APIUrl from '../../../config/apiurl'
-
+let obj = { appid: APIUrl.appid, timeStamp: APIUrl.timeStamp }
 export default {
   components: {},
   data() {
     return {
       username: '',
       password: '',
-     logo: localStorage.getItem('logo'),
+      root: APIUrl.root,
+      img: '',
+      green: 'white'
+
     }
   },
   methods: {
 
     login() {
 
-      //				var phoneReg = /^((0\d{2,3}-\d{7,8})|(1([358][0-9]|4[579]|66|7[0135678]|9[89])[0-9]{8}))$/;
+      //        var phoneReg = /^((0\d{2,3}-\d{7,8})|(1([358][0-9]|4[579]|66|7[0135678]|9[89])[0-9]{8}))$/;
       var mobile = this.username
       var password = this.password
       if (mobile == '') {
@@ -88,7 +92,8 @@ export default {
             timeStamp: APIUrl.timeStamp,
             mobile: mobile,
             password: password,
-            sign: sign
+            sign: sign,
+            active: APIUrl.active
           })
           .then((response) => {
             if (response.code == 402) {
@@ -131,6 +136,11 @@ export default {
 
   },
   created() {
+    let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
+    let params = Object.assign({ sign: sign, active: APIUrl.active }, obj)
+    this.$get(APIUrl.root + APIUrl.indexAd, params).then(res => {
+      this.img = res.data.logo;
+    })
     if (localStorage.getItem('token')) { // 判断是否登录
       this.$router.push("/");
     }

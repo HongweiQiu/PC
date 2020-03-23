@@ -9,8 +9,8 @@
     <div class="whole">
       <div class="indexsort">
         <ul>
-          <li v-for="(item,index) in indexAd" v-if="num.test(item.id)">
-            <img :src="'http://test.caidj.cn/'+item.img_url">
+          <li v-for="(item,index) in indexAd" v-if="!num.test(item.id)">
+            <img :src="item.img_url">
             <div><span>{{item.title}}</span>
               <span class="pointer" @click="enter(item)">进入</span>
             </div>
@@ -24,7 +24,7 @@
           <i class="el-icon-close pointer" @click="display_car=false"></i>
           <div>
             <div class='enter'>
-              <img :src="'http://test.caidj.cn/'+attr.img">
+              <img :src="attr.img">
               <div>
                 <span>{{attr.title}}</span>
                 <span class="gray">{{attr.describe}}</span>
@@ -53,15 +53,21 @@
           <img src="../../../static/img/horn.png">
           <el-carousel style="width:63%;height:20px;" arrow="never">
             <el-carousel-item v-for="item in 4" :key="item" style="height: 20px;">
-              <span>{{public_msg}}</span>
+              <span id="scroll">{{public_msg}}</span>
             </el-carousel-item>
           </el-carousel>
         </div>
         <div v-if="bitmap" class="goods" id="mask">
           <div class='sort pointer' v-for="(item,index) in indexItem" @click="shopping(item)">
             <p> {{item.title}}</p>
-            <img :src="'http://test.caidj.cn/'+item.img">
-            <div>
+            <!-- <img :src="root+item.img"> -->
+
+             <el-image :src="item.img" fit="contain">
+      <div slot="error" class="image-slot">
+          <img :src="defaultImg">
+      </div>
+    </el-image>
+            <div class="judge_attr">
               <div class="specs">
                 <span v-if="item.attr.length>0">
                   <span class="orange">多规格</span>
@@ -107,6 +113,8 @@ export default {
   },
   data() {
     return {
+      defaultImg:'',
+      root:APIUrl.root,
       num: '',
       screenWidth: '',
       input: '',
@@ -158,39 +166,50 @@ export default {
     },
     cateList() {
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: sign }, obj)
+      let params = Object.assign({ sign: sign,active:APIUrl.active}, obj)
       this.$get(APIUrl.root + APIUrl.indexAd, params).then(res => {
         this.indexAd = res.data.nav
-        this.num = /^(26|12|7|6|5|14|13|8)$/;
+        this.num = /^(1|2|3|4)$/;
 
         this.public_msg = res.data.public_msg;
         localStorage.setItem('logo', res.data.logo)
       })
     },
     loadInfo(url, params) {
-      this.$Indicator.open('正在加载中......')
-      this.$get(APIUrl.root + url, params).then(res => {
-        let data = res.data;
-        this.is_look = data.is_look;
-        this.indexItem = data.list
-        if (data.list.length) {
-          this.bitmap = true
-        } else {
-          this.bitmap = false
-        }
-        this.total = data.total
-        this.$Indicator.close()
-      })
+      // this.$Indicator.open('正在加载中......')
 
+      this.$get(APIUrl.root + url, params).then(res => {
+              if(res.code==200) {
+                let data = res.data;
+                this.defaultImg = data.item_default;
+                this.is_look = data.is_look;
+                this.indexItem = data.list;
+                // console.log(this.indexItem)
+
+                  if (!data.list) {
+                    this.bitmap = false;
+                  } else {
+                    this.bitmap = true;
+                  }
+                  this.total = data.total
+                }
+
+
+              })
+
+      this.$Indicator.close()
     },
     shopInfo() {
+   // console.log(12)
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: sign, num: this.nums, page: 1, }, obj)
+      let params = Object.assign({ sign: sign, num: this.nums, page: 1,active:APIUrl.active }, obj)
       this.loadInfo(APIUrl.indexItem, params)
+
     },
     handleCurrentChange(val) {
+
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret)
-      let params = Object.assign({ sign: sign, num: this.nums, page: val, }, obj)
+      let params = Object.assign({ sign: sign, num: this.nums, page: val,active:APIUrl.active }, obj)
       this.loadInfo(APIUrl.indexItem, params)
 
     },
@@ -207,7 +226,7 @@ export default {
         return;
       }
       this.display_car = true
-      this.choose = false
+      this.choose = false;
       this.attr = data
       this.order = '',
         this.selectnum = 0;
@@ -263,7 +282,7 @@ export default {
         }, obj)
       }
       let sign = this.$md5(objKeySort(joinSign) + APIUrl.appsecret)
-      let params = Object.assign({ sign: sign }, joinSign)
+      let params = Object.assign({ sign: sign,active:APIUrl.active }, joinSign)
 
       this.$post(APIUrl.root + APIUrl.firstChangeNum, params).then(res => {
         if (res.code == 200) {
@@ -283,14 +302,14 @@ export default {
         }
       })
     },
-   
+
     //进入
     enter(item) {
       let page = (pagename, pagename2) => {
         this.firstNav(pagename)
         this.$router.push({ name: pagename2 });
       }
-    
+
       if (item.status == 0) {
         this.$Toast({
           message: '该栏目已下架'
@@ -324,10 +343,7 @@ export default {
           page('classify','classify')
           break;
 
-        case 26:
-        case 14:
-        case 13:
-        case 12:
+       default:
           this.firstNav('classify')
           localStorage.setItem('catetitle', item.title)
           this.$router.push({ path: '/classify', query: { id: item.cate_id } });
@@ -338,6 +354,22 @@ export default {
 
   },
   mounted() {
+    let oScroll=document.getElementById('scroll');
+
+         let x=oScroll.style.left;
+         let x1=oScroll.offsetLeft;
+
+         let scrollLeft=()=>{
+          x++;
+          oScroll.style.left=x1-x+'px';
+          // console.log(x1)
+           if(oScroll.style.left==700+'px'){
+            clearInterval(clear)
+           }
+         }
+
+         // let clear=setInterval(scrollLeft,1);
+
     this.screenWidth = document.getElementById('mask').offsetWidth
     const that = this
     window.onresize = () => {
@@ -345,7 +377,7 @@ export default {
     }
   },
   created() {
-
+ // console.log(APIUrl.root + APIUrl.firstChangeNum)
     this.cateList()
     this.shopInfo()
   }
@@ -353,6 +385,7 @@ export default {
 
 </script>
 <style lang="less">
+// #scroll{position:absolute;left:49%;}
 .pcindex .inp_box {
   display: flex;
 
@@ -442,7 +475,9 @@ export default {
           margin-top: 5px;
         }
 
-        div {
+        .judge_attr {
+          justify-content:space-between;
+          align-items:center;
           display: flex;
           width: 94%;
           padding: 10px 0 0 0px;

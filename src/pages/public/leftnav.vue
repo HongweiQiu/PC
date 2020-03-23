@@ -1,7 +1,5 @@
 <template>
-  <el-menu :default-active="routename" class="el-menu-vertical-demo nav" 
-
-  active-text-color="#009A44" @select="select" @open="open" unique-opened="true">
+  <el-menu :default-active="routename" class="el-menu-vertical-demo nav" active-text-color="#009A44" @select="select" @open="open" unique-opened="true">
     <el-menu-item :key="index" :index="first.link" v-for="(first,index) in list">
       <div class="first">
         <img :src="first.imga" v-if="path==first.link"><img v-else :src="first.img">
@@ -13,7 +11,6 @@
         <div class="first">
           <img :src="item.imga" v-if="path==item.link"><img v-else :src="item.img">
           <span>{{item.name }}</span>
-       
         </div>
       </template>
       <el-menu-item-group>
@@ -32,34 +29,36 @@ import allOrders from '../order/allOrders'
 export default {
   data() {
     return {
+      name: false,
       on: false,
-      menu:[],
+      menu: [],
       web: '',
       visible: false,
       list: [{
-          img: '../../../static/img/pc_menu_home.png',
-          imga: '../../../static/img/pc_menu_home_a.png',
+
+          img: require('../../../static/img/pc_menu_home.png'),
+          imga: require('../../../static/img/pc_menu_home_a.png'),
           name: '首页',
           link: '/'
         },
         {
-          img: '../../../static/img/pc_menu_classify.png',
-          imga: '../../../static/img/pc_menu_classify_a.png',
+          img: require('../../../static/img/pc_menu_classify.png'),
+          imga: require('../../../static/img/pc_menu_classify_a.png'),
           name: '分类',
           link: 'classify'
         },
         {
-          img: '../../../static/img/pc_menu_car.png',
-          imga: '../../../static/img/pc_menu_car_a.png',
+          img: require('../../../static/img/pc_menu_car.png'),
+          imga: require('../../../static/img/pc_menu_car_a.png'),
           name: '购物车',
           link: 'shoppingCar'
         },
       ],
       secondlist: [{
-          img: '../../../static/img/pc_menu_order.png',
-          imga: '../../../static/img/pc_menu_order_a.png',
-          jt: '../../../static/img/pc_menu_jt.png',
-          jta: '../../../static/img/pc_menu_jt_a.png',
+          img: require('../../../static/img/pc_menu_order.png'),
+          imga: require('../../../static/img/pc_menu_order_a.png'),
+          jt: require('../../../static/img/pc_menu_jt.png'),
+          jta: require('../../../static/img/pc_menu_jt_a.png'),
           name: '订单',
           link: 'order',
           data: [{
@@ -73,10 +72,10 @@ export default {
           ]
         },
         {
-          img: '../../../static/img/pc_menu_user.png',
-          imga: '../../../static/img/pc_menu_user_a.png',
-          jt: '../../../static/img/pc_menu_jt.png',
-          jta: '../../../static/img/pc_menu_jt_a.png',
+          img: require('../../../static/img/pc_menu_user.png'),
+          imga: require('../../../static/img/pc_menu_user_a.png'),
+          jt: require('../../../static/img/pc_menu_jt.png'),
+          jta: require('../../../static/img/pc_menu_jt_a.png'),
           name: '我的',
           link: 'user',
           data: [{
@@ -103,15 +102,19 @@ export default {
   },
   computed: {
     routename() {
+
       if (this.$route.name == 'index') {
+        this.firstNav('/');
         return '/';
-      } else if (this.$route.name == 'orderDetails' || this.$route.name == 'map') {
-        return 'allOrders'
+      } else if (this.$route.name == 'map' || this.$route.name == 'allOrders') {
+        this.firstNav('order');
+        return 'allOrders';
       } else if (this.$route.name == 'billingDetails') {
         return 'billingRecord'
       } else if (this.$route.name == 'loginAccount') {
         return 'accountMange'
       } else {
+        this.firstNav(this.$route.name);
         return this.$route.name
       }
     },
@@ -126,18 +129,23 @@ export default {
   methods: {
     ...mapMutations(['hiddenCar', 'jumppage', 'firstNav']),
 
-    selectPath(index, status = true) {
-
+    selectPath(index, status) {
+      let url = /^infomation|billingRecord|modify|accountMange|allOrders$/;
       if (index == '/' || index == 'classify') {
         this.firstNav(index);
-        // this.$refs.menu.close('nonPayment')
+
         this.$router.push({ path: index })
       } else {
         if (index == "allOrders" || index == "nonPayment") {
 
           this.firstNav('order');
-        } else if (index == "infomation" || index == "billingRecord" || index == "modify" || index == "accountMange") {
+          this.jumppage(status);
+          return index;
+        } else if (url.test(index)) {
           this.firstNav('user');
+          this.jumppage(status)
+          return index;
+
         } else if (index == "shoppingCar") {
           this.firstNav('shoppingCar');
         }
@@ -145,19 +153,17 @@ export default {
       }
     },
     select(index) {
-
-   
       if (index != 'shoppingCar') {
         this.hiddenCar(true)
       } else {
         this.hiddenCar(false)
       }
 
-      if (!this.token) {
-        this.selectPath(index, status = true)
+      if (!this.token && index) {
+        this.selectPath(index, true)
 
       } else {
-        this.selectPath(index, status = false);
+        this.selectPath(index, false);
         this.$router.push({ path: index })
 
       }
@@ -166,21 +172,23 @@ export default {
 
   },
   created() {
-    if(this.token){
-      this.selectPath(this.routename, status = false)
-    }else{this.firstNav(this.routename)}
-  if(this.path=='shoppingCar'){
-  this.hiddenCar(false)
 
-  }
+    if (this.token) {
+      // this.routename=this.$route.name;
+      this.selectPath(this.routename, status = false)
+    } else { this.firstNav(this.routename) }
+    if (this.path == 'shoppingCar') {
+      this.hiddenCar(false)
+
+    }
   }
 };
 
 </script>
 <style>
 .nav>li:focus {
-  background: #009A44 !important;
-  color: white;
+  background: none;
+  color: black;
 }
 
 .nav>li:hover {
@@ -192,7 +200,7 @@ export default {
 }
 
 .nav>.is-active {
-  background: #009A44;
+  background: #009A44 !important;
   color: white !important;
 }
 
@@ -214,8 +222,14 @@ export default {
   color: black;
 }
 
+.is-active .first:focus {
+  background: red;
+}
+
 .is-active .el-submenu__title i {
   color: white;
 }
+
+/* .el-menu-item:focus{background: red!important;} */
 
 </style>

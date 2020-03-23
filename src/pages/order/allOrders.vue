@@ -54,7 +54,7 @@
           </div>
           <table>
             <tr :style="{width:screenWidth-4+'px'}" class="fixed regular">
-              <th align="left">商品 </th>
+              <th align="left">商品</th>
               <th align="left">数量</th>
               <th align="left">金额(￥)</th>
               <th align="left">订单状态</th>
@@ -63,12 +63,17 @@
                 <i class="fa fa-share-square-o pointer" @click="hidden=true"> 导出</i>
               </th>
             </tr>
-            <tr class='movetr'></tr>
+            <tr class='movetr'> </tr>
             <tr class="list_box" v-for="item in orderlist">
-              <td class="divcss5-td-1" >
+              <td class="divcss5-td-1">
                 <div class="list_top">下单时间{{item.created_time}}</div>
                 <div class="list_txt" style="display: flex;">
-                  <img :src="'http://test.caidj.cn'+item.item_img" />
+                <!--   <img :src="root+item.item_img" /> -->
+                   <el-image :src="item.item_img" fit="contain" class='imgwidth'>
+           <div slot="error" class="image-slot">
+          <img :src="defaultImg">
+      </div>
+    </el-image>
                   <div style="margin-left: 10px;">{{item.item_title}}</div>
                 </div>
               </td>
@@ -80,7 +85,7 @@
               </td>
               <td class="divcss5-td-2">
                 <div class="list_txt">
-                  {{item.xd_price}}
+                  {{item.delivery_fee}}
                 </div>
               </td>
               <td class="divcss5-td-2">
@@ -104,10 +109,10 @@
                   </span>
                 </div>
                 <!--<div class="list_txt list_btn pay" v-if="item.order_status==3">
-									<span class="pay">
-										马上支付
-									</span>
-								</div>-->
+                  <span class="pay">
+                    马上支付
+                  </span>
+                </div>-->
                 <div class="list_txt list_btn" v-if="item.order_status==3">
                   <span class="again pointer" @click="anotherOrder(item.id)">
                     再来一单
@@ -155,16 +160,21 @@
 <script>
 import * as types from '../../../config/types'
 import APIUrl from '../../../config/apiurl'
+
 import { mapState } from 'vuex'
 let obj = {
   appid: APIUrl.appid,
   timeStamp: APIUrl.timeStamp
 };
 export default {
-  components: {},
+  components: {
+    
+  },
 
   data() {
     return {
+     defaultImg:'',
+      root: APIUrl.root,
       isFirstEnter: false,
       hidden: false,
       radio: 0,
@@ -204,18 +214,24 @@ export default {
       select_zid: '',
       statusInfo: [],
       screenWidth: '',
-         bitmap:true,
+      bitmap: true,
     }
   },
 
   computed: {
 
-    // ...mapState(['bitmap'])
+    ...mapState([
+      'token'
+      // 'bitmap'
+    ])
   },
   methods: {
+    test1(){
+      alert(45)
+    },
     blur() {
       let int = Math.ceil((this.total / this.nums))
-      console.log(int)
+
       if (this.page <= 0) {
         this.page = 1
       }
@@ -235,7 +251,7 @@ export default {
         return;
       }
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
-      let params = Object.assign({ sign: sign, dateArr: this.value2, type: this.radio }, obj);
+      let params = Object.assign({ sign: sign, dateArr: this.value2, type: this.radio, active: APIUrl.active }, obj);
       this.$axios({
           url: APIUrl.root + APIUrl.orderExport,
           method: 'get',
@@ -266,9 +282,8 @@ export default {
     },
 
     selectClick(event) {
-
+     
       this.select_zid = event;
-
       this.allOrder();
       this.status();
     },
@@ -278,7 +293,8 @@ export default {
       this.$get(APIUrl.root + APIUrl.childInfo, {
         appid: APIUrl.appid,
         timeStamp: APIUrl.timeStamp,
-        sign: sign
+        sign: sign,
+        active: APIUrl.active
       }).then(res => {
         if (res.code == 200) {
           this.options = res.data;
@@ -286,24 +302,33 @@ export default {
       })
     },
     order(params) {
+      if (this.token) {
+        this.$Indicator.open('加载中...');
+        this.bitmap = false;
+      }
       this.$get(APIUrl.root + APIUrl.orderList, params).then(res => {
+
         let data = res.data;
+        this.defaultImg=data.item_default;
         this.orderlist = data.list;
         this.total = data.total;
 
         if (data.list.length) {
-          this.bitmap=true
+
+          this.bitmap = true
         } else {
-          this.bitmap=false;
+          this.bitmap = false;
         }
         this.status();
         this.$Indicator.close();
-      })
+      });
+
     },
     //所有订单
     allOrder() {
+
       let newobj = Object.assign({
-        page: 1,
+        page: this.page,
         type: 1
       }, obj);
 
@@ -312,11 +337,12 @@ export default {
         sign: sign,
         num: this.nums,
         select_zid: this.select_zid,
-        status: this.titleId
+        status: this.titleId,
+        active: APIUrl.active
       }, newobj);
-      this.$Indicator.open('加载中...');
-       this.order(params)
-     
+
+      this.order(params)
+
     },
     handleCommand(command) {
       this.$message('click on item ' + command);
@@ -328,7 +354,8 @@ export default {
       }, obj);
       let sign = this.$md5(objKeySort(newobj) + APIUrl.appsecret);
       let params = Object.assign({
-        sign: sign
+        sign: sign,
+        active: APIUrl.active
       }, newobj);
       this.$confirm(tip, '提示', {
         confirmButtonText: '确定',
@@ -347,7 +374,8 @@ export default {
               message: msg,
               duration: 1000
             })
-            setTimeout(() => { this.allOrder();  this.$api.getCartNum();}, 1000)
+            setTimeout(() => { this.allOrder();
+              this.$api.getCartNum(); }, 1000)
           }
         })
       })
@@ -367,12 +395,23 @@ export default {
 
     },
     titleClick(data) {
+    
       this.titleId = data.id
       this.allOrder();
+      return;
+     this.$msgBox.showMsgBox({
+          title: '添加分类',
+          content: '请填写分类名称',
+      }).then(()=>{
+        console.log(45)
+      }).catch(() => {
+          // ...
+      });
     },
 
     //翻页
     handleCurrentChange(val) {
+      this.page = val;
       let newobj = Object.assign({
         page: val,
         type: 1
@@ -383,7 +422,8 @@ export default {
         sign: sign,
         num: this.nums,
         select_zid: this.select_zid,
-        status: this.titleId
+        status: this.titleId,
+        active: APIUrl.active
       }, newobj);
       this.$Indicator.open('加载中...');
       this.order(params)
@@ -391,7 +431,7 @@ export default {
     status() {
 
       let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
-      let params = Object.assign({ sign: sign, status: [0, 1, 2, 3, 4], select_zid: this.select_zid, }, obj)
+      let params = Object.assign({ sign: sign, status: [0, 1, 2, 3, 4], select_zid: this.select_zid, active: APIUrl.active }, obj)
       this.$get(APIUrl.root + APIUrl.censusNum, params).then(res => {
         let data = res.data;
         this.statusInfo = data
@@ -409,6 +449,7 @@ export default {
     }
   },
   created() {
+
     this.status()
     this.childInfo()
     this.allOrder()
@@ -455,7 +496,11 @@ export default {
   width: 21.4%;
 }
 
-.movetr{display: block;margin-top:40px;}
+.movetr {
+  display: block;
+  margin-top: 40px;
+}
+
 /* .order_box .order_content .list_box:nth-child(2) {
   border-top: 37px solid #efefef;
 } */

@@ -42,7 +42,7 @@
                     password_confirmation:this.password_confirmation,
                 };
                 let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
-                 let params=Object.assign({sign:sign},obj)
+                 let params=Object.assign({sign:sign,active:APIUrl.active},obj)
                 this.$post(APIUrl.root+APIUrl.modifyPassword,params).then(res=>{
                 	this.$Indicator.close();
                     if(res.code!=200){

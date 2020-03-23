@@ -21,15 +21,16 @@ export default new Vuex.Store({
         countInfo:'',
         path:'',
         carts:[],
+        repeatcart:[],
       date:[],
      indexAd:[],
      is_look:'',
      jumpstate:false,
-    price:'',
+    
     },
     mutations: {
-      checkCart(state,date){
-        state.price=date;
+      repeatCart(state,data){
+        state.repeatcart=data;
       },
       jumppage(state,date){
         state.jumpstate=date;

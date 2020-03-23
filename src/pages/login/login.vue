@@ -110,7 +110,7 @@ export default {
         let password=this.inputtext.password;
         let typew=this.inputtext.typew;
         let sign=this.$md5('appid='+APIUrl.appid+'&mobile='+mobile+'&password='+password+'&timeStamp='+APIUrl.timeStamp+'&type='+typew+APIUrl.appsecret);
-        this.$post(APIUrl.root+APIUrl.login,{appid:APIUrl.appid,mobile:mobile,password:password,type:typew,timeStamp:APIUrl.timeStamp,sign:sign})
+        this.$post(APIUrl.root+APIUrl.login,{appid:APIUrl.appid,mobile:mobile,password:password,type:typew,timeStamp:APIUrl.timeStamp,sign:sign,active:APIUrl.active})
         .then((response) => {
             // console.log(response)
             if(response.code==400)

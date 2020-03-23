@@ -18,7 +18,7 @@
 
           <td>{{index+1}}</td>
           <td>{{item.item_title}}</td>
-          <!-- <td><img class="imgwidth" :src="'http://test.caidj.cn'+item.img"></td> -->
+          <!-- <td><img class="imgwidth" :src="root+item.img"></td> -->
           <td>
           	<span v-if="item.attr_title==''">/</span>
           	<span v-else>{{item.attr_title}}</span>
@@ -97,7 +97,7 @@
             };
 
             let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
-            let params=Object.assign({sign:sign},obj)
+            let params=Object.assign({sign:sign,active:APIUrl.active},obj)
             this.$get(APIUrl.root+APIUrl.orderInfo ,params).then(res => {
               if(res.code!=200){
                   this.$Toast({

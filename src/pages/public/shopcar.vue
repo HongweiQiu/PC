@@ -1,4 +1,4 @@
-<style>
+/* <style>
   .shop_box {
     position: fixed;
     right: 0;
@@ -70,7 +70,7 @@
           <el-main>
             <div class="details">
               <i class="el-icon-delete"></i>
-              <span @click='deletebuy([myCart[0]])' class="pointer"> 删除</span>
+              <span @click='deletebuy' class="pointer"> 删除</span>
               <span></span>
             </div>
             <div v-if="bitmap">
@@ -80,7 +80,8 @@
                   <template slot-scope="scope"><img :src="'http://test.caidj.cn' +scope.row.img "></template>
                 </el-table-column> -->
                 <el-table-column>
-                  <template slot-scope="scope">{{scope.row.title}}
+                  <template slot-scope="scope">
+                    <p class='cartright'>{{(scope.row.title)}}</p>
                     <span class="red">
                       <span v-if="scope.row.attr==false">
                         x{{scope.row.price}}</span>
@@ -164,13 +165,14 @@ export default {
     handleClose(done) {
       this.displaycar();
     },
-    //复选框改变时获取的值
+     //解决两边购物车价钱不统一
     oneclick(rows, column, cell, event) {
       let test = []
       test.push(rows);
       this.checked(test, false)
       this.checked(test, true)
     },
+       //复选框改变时获取的值
     changeFun(val) {
       this.cartId = [];
       let totalPrice = []
@@ -184,7 +186,7 @@ export default {
         this.select = '取消';
       }
 
-      localStorage.setItem("localKey", JSON.stringify(val))
+    
 
       for (let i of val) {
 
@@ -200,6 +202,7 @@ export default {
         sum += i;
       }
       this.totalPrice = sum;
+      // console.log(this.cartId)
     },
     checked(rows, status) {
       rows.forEach(row => {
@@ -220,15 +223,7 @@ export default {
     },
     //自增加入购物车
     handleChange(item, value) {
-      if (item.is_float == 1) {
-        if (!Number.isInteger(value)) {
-          this.$Toast({
-            message: '购买数量不能为小数',
-            duration: 1000
-          })
-          return;
-        }
-      }
+
       this.$api.addCart(item, value);
 
       let totalPrice = []
@@ -242,19 +237,13 @@ export default {
       this.totalPrice = sum;
 
     },
-    //右边购物车
-    rightCar() {
-      this.$api.cartList()
-    },
+
     car1() {
       this.displaycar();
     },
     car() {
-
       if (this.token) {
-
-        this.rightCar();
-
+       this.$api.cartList()
         this.displaycar();
       } else {
         this.jumppage(true)
@@ -273,12 +262,8 @@ export default {
       this.changedisplay('clear');
       this.selectCar(this.cartId)
     },
-    //获取购物车数量和总价
-    getCountNum() {
-      this.$api.getCartNum();
-    },
     pay() {
-     if (!this.selectgoods.length) {
+      if (!this.selectgoods.length && this.bitmap == true) {
         this.$Toast({
           message: '请选择要结算的商品'
         })
@@ -292,7 +277,8 @@ export default {
         })
         return;
       }
-
+      localStorage.setItem("localKey", JSON.stringify(this.selectgoods))
+      this.$store.commit('repeatCart',this.selectgoods)
       this.firstNav('shoppingCar');
       this.$router.push({ name: 'shoppingCar', query: { statu: 0 } });
       this.hiddenCar(false);
@@ -303,8 +289,8 @@ export default {
 
   },
   created() {
-
-    this.getCountNum();
+      //页面初始化获取购物车数量和价钱
+     this.$api.getCartNum();
 
   }
 
@@ -363,5 +349,11 @@ export default {
 .buycar .el-icon-delete {
   color: green;
 }
+.cartright{width: 71%;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+   text-align: left;}
 
 </style>
+ */

@@ -50,7 +50,7 @@
 				};
 
 				let sign = this.$md5(objKeySort(obj) + APIUrl.appsecret);
-				let params = Object.assign({sign: sign}, obj)
+				let params = Object.assign({sign: sign,active:APIUrl.active}, obj)
 				this.$get(APIUrl.root + APIUrl.moneyListInfo, params).then(res => {
 					if(res.code!=200){
 					    this.$Toast({

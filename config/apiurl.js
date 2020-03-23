@@ -1,7 +1,10 @@
 // 配置API接口地址
 const timeStamp=Math.round(new Date().getTime()/1000);
+
 export default {
-    root                  : process.env.API_HOST,               // 代理
+    // root                  : process.env.API_HOST,// 代理
+    root                  : window.location.protocol+"//"+window.location.hostname+'/',// 上线
+    active                : 0,
     appid                 : 2,                                  // appid
     appsecret             : 'StJfzJcXmya6k6Ar',                 // 密码
     timeStamp             : timeStamp,                          // 时间戳
