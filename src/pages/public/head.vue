@@ -3,7 +3,7 @@
     <div class="main_head_box" :class="[{ headactive:webname=='allOrders'||webname=='nonPayment' }]">
       <div class="main_head">
         <div class="main_head_logo pointer" @click='index'>
-         <img :src="root+logo" alt="" />
+         <img :src="logo" alt="" />
         </div>
         <div class="main_head_txt ">
           <div class="main_head_item" v-if="token">

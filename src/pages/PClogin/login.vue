@@ -12,7 +12,7 @@
   <article>
     <div class="pc_login_box">
       <div class="logo">
-        <img class='' :src="root+img" alt="" />
+        <img class='' :src="img" alt="" />
       </div>
       <div class="pc_login">
         <div class="inp_box">

@@ -15,7 +15,7 @@ module.exports = {
     // 设置axios请求头
     proxyTable: {
       '/apiw': {  // api为匹配项
-          target:'http://new.caidj.cn', // 设置代理目标  // 你请求的第三方接口
+          target:'http://test.caidj.cn', // 设置代理目标  // 你请求的第三方接口
           changeOrigin: true,    //指示是否跨域
           pathRewrite: {  // 重写路径
             '^/apiw': '/'  //// 替换target中的请求地址，也就是说以后你在请求http://api.jisuapi.com/XXXXX这个地址的时候直接写成/api即可。

@@ -631,7 +631,7 @@ textarea:focus {
 	border: none !important;
 	color: #1a1a1a !important;
 	display: inline-block !important;
-	font-size: 16px !important;
+	/*font-size: 16px !important;*/
 	height: 20px !important;
 	line-height: 20px !important;
 	padding: 0 !important;
@@ -648,7 +648,7 @@ textarea:focus {
 }
 .shopcar_box .linkman_box .linkman_content .linkman_left .el-input__prefix .el-input__icon:hover{color:green!important;}
 .shopcar_box .linkman_box .linkman_content .linkman_left .el-input__suffix {
-	display: none !important;
+	/*display: none !important;*/
 }
 
 .shopcar_box .linkman_box .linkman_chack .el-radio__input.is-checked .el-radio__inner {
@@ -940,7 +940,7 @@ textarea:focus {
 .order_box .order_content table th {
 	padding-bottom: 20px;
 	padding: 10px;
-	
+
 }
 
 .order_box .order_content .list_box {
@@ -1168,7 +1168,7 @@ color: green!important;
   text-align: right;
 }
 .record th:nth-child(6){
-	
+
   text-align: right;
 }
 
@@ -1393,7 +1393,7 @@ color: green!important;
 
 .buycar .noimg {
 	position: absolute;
-  
+
     color: #9E9E9E;
     display: flex;
     justify-content: center;

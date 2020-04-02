@@ -368,8 +368,6 @@ export default {
            }
          }
 
-         // let clear=setInterval(scrollLeft,1);
-
     this.screenWidth = document.getElementById('mask').offsetWidth
     const that = this
     window.onresize = () => {
@@ -377,7 +375,6 @@ export default {
     }
   },
   created() {
- // console.log(APIUrl.root + APIUrl.firstChangeNum)
     this.cateList()
     this.shopInfo()
   }
